@@ -60,7 +60,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🔰 SQLMap Bot\n\n"
         "Commands:\n"
-        "• /sqlmap <URL> - Start scan\n"
+        "• /sqlmap <URL> - Start scan with options\n"
+        "• /continue - Add more options to scan"
+    )
+
+async def continue_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    session = user_sessions.get(user_id)
+    
+    if not session or not session['url']:
+        await update.message.reply_text("❌ No active session. Start with /sqlmap <URL>")
+        return
+    
+    await update.message.reply_text(
+        f"💠 Continue: `{session['url']}`\n\n**Page 1/{len(ALL_OPTIONS)}**",
+        reply_markup=create_keyboard(user_id, 0),
+        parse_mode='Markdown'
     )
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -174,6 +189,7 @@ def main():
     app = Application.builder().token(token).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("sqlmap", sqlmap_cmd))
+    app.add_handler(CommandHandler("continue", continue_cmd))
     app.add_handler(CallbackQueryHandler(button_callback))
     
     print("Bot started")
