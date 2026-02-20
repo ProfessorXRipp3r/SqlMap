@@ -150,9 +150,17 @@ async def run_scan(chat_id, user_id, context):
         full_output = '\n'.join(output)
         chunks = [full_output[i:i+3900] for i in range(0, len(full_output), 3900)]
         
-        await status_msg.edit_text("✅ Complete!")
+        await status_msg.edit_text("✅ Complete! Use /continue for more.")
         for chunk in chunks[:3]:
             await context.bot.send_message(chat_id, f"```\n{chunk}\n```", parse_mode='Markdown')
+        
+        log_dir = os.path.join(os.path.dirname(__file__), '.sqlmap', 'output')
+        if os.path.exists(log_dir):
+            for root, dirs, files in os.walk(log_dir):
+                for file in files[:5]:
+                    path = os.path.join(root, file)
+                    if os.path.getsize(path) < 50000000:
+                        await context.bot.send_document(chat_id, document=open(path, 'rb'), filename=file, caption=f"📄 {file}")
     except Exception as e:
         await status_msg.edit_text(f"❌ {str(e)}")
     finally:
