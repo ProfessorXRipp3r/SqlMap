@@ -19,6 +19,9 @@ ALL_OPTIONS = [
     {'Batch': '--batch', 'Risk 3': '--risk=3', 'Level 5': '--level=5', 'Verbose': '-v 3'},
     {'Crawl': '--crawl=2', 'Forms': '--forms', 'Level 2': '--level=2', 'Random Agent': '--random-agent'},
     {'Threads 5': '--threads=5', 'Retry 3': '--retries=3', 'Timeout 30': '--timeout=30', 'Delay 0': '--delay=0'},
+    {'Tamper Space2Comment': '--tamper=space2comment', 'Technique BEUST': '--technique=BEUST', 'Fingerprint': '--fingerprint', 'Banner': '--banner'},
+    {'Schema': '--schema', 'Count': '--count', 'Search': '--search', 'Comments': '--comments'},
+    {'OS Shell': '--os-shell', 'File Read': '--file-read', 'File Write': '--file-write', 'Privileges': '--privileges'},
 ]
 
 def create_keyboard(user_id, page=0):
