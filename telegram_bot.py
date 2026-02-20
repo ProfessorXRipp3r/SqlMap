@@ -16,6 +16,9 @@ user_sessions = defaultdict(lambda: {'url': None, 'options': set(), 'page': 0, '
 ALL_OPTIONS = [
     {'Databases': '--dbs', 'Tables': '--tables', 'Columns': '--columns', 'Dump All': '--dump-all'},
     {'Current DB': '--current-db', 'Current User': '--current-user', 'Hostname': '--hostname', 'Passwords': '--passwords'},
+    {'Batch': '--batch', 'Risk 3': '--risk=3', 'Level 5': '--level=5', 'Verbose': '-v 3'},
+    {'Crawl': '--crawl=2', 'Forms': '--forms', 'Level 2': '--level=2', 'Random Agent': '--random-agent'},
+    {'Threads 5': '--threads=5', 'Retry 3': '--retries=3', 'Timeout 30': '--timeout=30', 'Delay 0': '--delay=0'},
 ]
 
 def create_keyboard(user_id, page=0):
