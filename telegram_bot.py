@@ -22,6 +22,12 @@ ALL_OPTIONS = [
     {'Tamper Space2Comment': '--tamper=space2comment', 'Technique BEUST': '--technique=BEUST', 'Fingerprint': '--fingerprint', 'Banner': '--banner'},
     {'Schema': '--schema', 'Count': '--count', 'Search': '--search', 'Comments': '--comments'},
     {'OS Shell': '--os-shell', 'File Read': '--file-read', 'File Write': '--file-write', 'Privileges': '--privileges'},
+    {'Union Cols': '--union-cols=12', 'Time Sec 5': '--time-sec=5', 'Auth Type': '--auth-type=Basic', 'Proxy': '--proxy'},
+    {'Test Filter': '--test-filter', 'Skip Static': '--skip-static', 'Randomize': '--randomize', 'Keep Alive': '--keep-alive'},
+    {'Dump Table': '--dump -T', 'Database': '-D', 'Exclude SysDB': '--exclude-sysdbs', 'Where': '--where'},
+    {'DBMS': '--dbms', 'OS': '--os', 'Tamper': '--tamper', 'SQL Query': '--sql-query'},
+    {'Tor': '--tor', 'Force SSL': '--force-ssl', 'Cookie': '--cookie', 'User Agent': '--user-agent'},
+    {'All': '-a', 'Is DBA': '--is-dba', 'Users': '--users', 'Roles': '--roles'}
 ]
 
 def create_keyboard(user_id, page=0):
