@@ -104,7 +104,45 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         await query.answer("🔰 Starting... 🔰")
-        await query.edit_message_text("✅ Scan queued!")
+        await run_scan(update.effective_chat.id, user_id, context)
+
+async def run_scan(chat_id, user_id, context):
+    session = user_sessions[user_id]
+    url = session['url']
+    opts = ' '.join(session['options'])
+    custom = session.get('custom_args', '')
+    
+    cmd = f"python sqlmap.py -u {url} {custom if custom else opts}"
+    
+    status_msg = await context.bot.send_message(chat_id, f"⏳ `{cmd[:100]}...`", parse_mode='Markdown')
+    
+    try:
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+            cwd=os.path.dirname(__file__)
+        )
+        
+        output = []
+        async for line in proc.stdout:
+            line_text = line.decode().strip()
+            output.append(line_text)
+            if len(output) % 10 == 0:
+                await status_msg.edit_text(f"⏳ Processing...\n```\n{line_text[:200]}\n```", parse_mode='Markdown')
+        
+        await proc.wait()
+        full_output = '\n'.join(output)
+        chunks = [full_output[i:i+3900] for i in range(0, len(full_output), 3900)]
+        
+        await status_msg.edit_text("✅ Complete!")
+        for chunk in chunks[:3]:
+            await context.bot.send_message(chat_id, f"```\n{chunk}\n```", parse_mode='Markdown')
+    except Exception as e:
+        await status_msg.edit_text(f"❌ {str(e)}")
+    finally:
+        session['options'].clear()
+        session['custom_args'] = ''
 
 async def sqlmap_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
