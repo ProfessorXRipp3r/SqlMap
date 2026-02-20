@@ -11,7 +11,7 @@ try:
 except ImportError:
     pass
 
-user_sessions = defaultdict(lambda: {'url': None, 'options': set(), 'page': 0, 'session_id': None, 'custom_args': '', 'dump_state': None, 'databases': []})
+user_sessions = defaultdict(lambda: {'url': None, 'options': set(), 'page': 0, 'session_id': None, 'custom_args': '', 'dump_state': None, 'databases': [], 'tables': [], 'selected_db': None})
 
 ALL_OPTIONS = [
     {'Databases': '--dbs', 'Tables': '--tables', 'Columns': '--columns', 'Dump All': '--dump-all'},
@@ -121,7 +121,34 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     data = query.data
     
-    if data.startswith("opt_"):
+    # Database selection
+    if data.startswith("db_"):
+        db_name = data[3:]
+        session['selected_db'] = db_name
+        await query.edit_message_text("🔍 Fetching tables...")
+        
+        cmd = f"python sqlmap.py -u {session['url']} -D {db_name} --tables --batch"
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, cwd=os.path.dirname(__file__))
+        output, _ = await proc.communicate()
+        
+        tables = []
+        for line in output.decode().split('\n'):
+            if line.strip().startswith('|') and '|' in line[1:]:
+                parts = [p.strip() for p in line.split('|')]
+                if len(parts) > 1 and parts[1] and parts[1] not in ['Table', '']:
+                    tables.append(parts[1])
+        
+        if not tables:
+            await query.edit_message_text("❌ No tables found")
+            return
+        
+        session['tables'] = tables
+        session['dump_state'] = 'select_table'
+        
+        keyboard = [[InlineKeyboardButton(t, callback_data=f"tbl_{t}")] for t in tables]
+        await query.edit_message_text(f"📋 Select table from {db_name}:", reply_markup=InlineKeyboardMarkup(keyboard))
+    
+    elif data.startswith("opt_"):
         _, page, label = data.split("_", 2)
         page = int(page)
         value = ALL_OPTIONS[page][label]
