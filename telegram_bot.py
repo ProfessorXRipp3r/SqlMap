@@ -278,9 +278,9 @@ async def run_scan(chat_id, user_id, context):
     opts = ' '.join(session['options'])
     custom = session.get('custom_args', '')
     
-    cmd = f"python sqlmap.py -u {url} {custom if custom else opts}"
+    cmd = f"python sqlmap.py -u '{url}' {custom if custom else opts} --batch"
     
-    status_msg = await context.bot.send_message(chat_id, f"⏳ `{cmd[:100]}...`", parse_mode='Markdown')
+    status_msg = await context.bot.send_message(chat_id, f"⏳ Starting scan...", parse_mode='Markdown')
     
     try:
         proc = await asyncio.create_subprocess_shell(
@@ -295,23 +295,29 @@ async def run_scan(chat_id, user_id, context):
             line_text = line.decode().strip()
             output.append(line_text)
             if len(output) % 10 == 0:
-                await status_msg.edit_text(f"⏳ Processing...\n```\n{line_text[:200]}\n```", parse_mode='Markdown')
+                try:
+                    await status_msg.edit_text(f"⏳ Processing...\n```\n{line_text[:200]}\n```", parse_mode='Markdown')
+                except Exception:
+                    pass
         
         await proc.wait()
         full_output = '\n'.join(output)
         chunks = [full_output[i:i+3900] for i in range(0, len(full_output), 3900)]
         
-        await status_msg.edit_text("✅ Complete! Use /continue or /dump <table> for more.")
+        await status_msg.edit_text(f"✅ Complete! @{context.bot.username}")
         for chunk in chunks[:3]:
             await context.bot.send_message(chat_id, f"```\n{chunk}\n```", parse_mode='Markdown')
         
+        # Send CSV results file
         log_dir = os.path.join(os.path.dirname(__file__), '.sqlmap', 'output')
         if os.path.exists(log_dir):
             for root, dirs, files in os.walk(log_dir):
-                for file in files[:5]:
-                    path = os.path.join(root, file)
-                    if os.path.getsize(path) < 50000000:
-                        await context.bot.send_document(chat_id, document=open(path, 'rb'), filename=file, caption=f"📄 {file}")
+                for file in files:
+                    if file.endswith('.csv') or file.endswith('.txt'):
+                        path = os.path.join(root, file)
+                        if os.path.getsize(path) < 50000000:
+                            with open(path, 'rb') as f:
+                                await context.bot.send_document(chat_id, document=f, filename=file, caption=f"📄 Results")
     except Exception as e:
         await status_msg.edit_text(f"❌ {str(e)}")
     finally:
