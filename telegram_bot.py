@@ -333,7 +333,20 @@ def main():
     app.add_handler(CallbackQueryHandler(button_callback))
     
     print("Bot started")
-    app.run_polling()
+    
+    # Use webhook for cloud deployment
+    port = int(os.getenv('PORT', 8443))
+    webhook_url = os.getenv('WEBHOOK_URL')
+    
+    if webhook_url:
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path=token,
+            webhook_url=f"{webhook_url}/{token}"
+        )
+    else:
+        app.run_polling()
 
 if __name__ == "__main__":
     main()
