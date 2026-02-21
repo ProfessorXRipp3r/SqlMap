@@ -139,7 +139,10 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     session = user_sessions[user_id]
     
-    await query.answer()
+    try:
+        await query.answer()
+    except Exception:
+        pass
     
     data = query.data
     
@@ -229,7 +232,10 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Dump selected columns
     elif data == "dump_selected":
         if not session.get('selected_columns'):
-            await query.answer("❌ Select at least one column", show_alert=True)
+            try:
+                await query.answer("❌ Select at least one column", show_alert=True)
+            except Exception:
+                pass
             return
         
         cols = ','.join(session['selected_columns'])
@@ -245,10 +251,16 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if value in session['options']:
             session['options'].remove(value)
-            await query.answer(f"➖ {label}")
+            try:
+                await query.answer(f"➖ {label}")
+            except Exception:
+                pass
         else:
             session['options'].add(value)
-            await query.answer(f"➕ {label}")
+            try:
+                await query.answer(f"➕ {label}")
+            except Exception:
+                pass
         
         try:
             await query.edit_message_reply_markup(reply_markup=create_keyboard(user_id, page))
@@ -266,10 +278,16 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif data == "done":
         if not session['options']:
-            await query.answer("❌ Select at least one option", show_alert=True)
+            try:
+                await query.answer("❌ Select at least one option", show_alert=True)
+            except Exception:
+                pass
             return
         
-        await query.answer("🔰 Starting... 🔰")
+        try:
+            await query.answer("🔰 Starting... 🔰")
+        except Exception:
+            pass
         await run_scan(update.effective_chat.id, user_id, context)
 
 async def run_scan(chat_id, user_id, context):
