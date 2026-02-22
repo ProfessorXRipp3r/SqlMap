@@ -1,6 +1,8 @@
 import os
 import asyncio
 import re
+import json
+import pickle
 from collections import defaultdict
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
@@ -11,7 +13,28 @@ try:
 except ImportError:
     pass
 
-user_sessions = defaultdict(lambda: {'url': None, 'options': set(), 'page': 0, 'session_id': None, 'custom_args': '', 'dump_state': None, 'databases': [], 'tables': [], 'columns': [], 'selected_db': None, 'selected_table': None})
+# Session file path
+SESSION_FILE = os.path.join(os.path.dirname(__file__), '.sessions.pkl')
+
+# Load sessions from file
+def load_sessions():
+    if os.path.exists(SESSION_FILE):
+        try:
+            with open(SESSION_FILE, 'rb') as f:
+                return pickle.load(f)
+        except Exception:
+            pass
+    return defaultdict(lambda: {'url': None, 'options': set(), 'page': 0, 'session_id': None, 'custom_args': '', 'dump_state': None, 'databases': [], 'tables': [], 'columns': [], 'selected_db': None, 'selected_table': None})
+
+# Save sessions to file
+def save_sessions():
+    try:
+        with open(SESSION_FILE, 'wb') as f:
+            pickle.dump(dict(user_sessions), f)
+    except Exception:
+        pass
+
+user_sessions = load_sessions()
 
 ALL_OPTIONS = [
     {'Databases': '--dbs', 'Tables': '--tables', 'Columns': '--columns', 'Dump All': '--dump-all'},
@@ -86,6 +109,7 @@ async def sqlmap_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session['options'] = set()
     session['page'] = 0
     session['custom_args'] = ''
+    save_sessions()
     
     await update.message.reply_text(
         f"🌐 Target: `{url}`\n\n**Page 1/{len(ALL_OPTIONS)}**\n\n"
@@ -359,6 +383,7 @@ async def run_scan(chat_id, user_id, context):
         # Clear only options, keep URL and session for /continue and /dump
         session['options'].clear()
         session['custom_args'] = ''
+        save_sessions()
         # Don't clear url, session_id, or dump-related fields
 
 def main():
